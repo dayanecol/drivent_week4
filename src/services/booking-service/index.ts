@@ -1,5 +1,9 @@
 import { notFoundError } from "@/errors";
+import { forbiddenError } from "@/errors";
 import bookingRepository from "@/repositories/booking-repository";
+import enrollmentRepository from "@/repositories/enrollment-repository";
+import ticketRepository from "@/repositories/ticket-repository";
+import roomRepository from "@/repositories/room-repository";
 
 async function getBooking(userId:number) {
 
@@ -12,8 +16,29 @@ async function getBooking(userId:number) {
     return booking;
 }
 
-async function postBooking() {
+async function postBookingByRoomId(userId:number,roomId:number) {
+    const room = await roomRepository.findRoomById(roomId);
+    if (!room){
+        throw notFoundError();
+    }
+
+    const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+    if (!enrollment) {
+        throw forbiddenError();
+    }
     
+    const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+    if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+        throw forbiddenError();
+    }
+    
+    const booking = await bookingRepository.findBookingByRoomId(roomId);
+
+    if(room.capacity <= booking.length){
+        throw forbiddenError();
+    }
+
+    return bookingRepository.createBooking(userId,roomId);
 }
 
 async function putBooking() {
@@ -22,7 +47,7 @@ async function putBooking() {
 
 const bookingService = {
     getBooking,
-    postBooking,
+    postBookingByRoomId,
     putBooking,
 }
 
