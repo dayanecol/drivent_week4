@@ -9,3 +9,9 @@ export async function createBooking(userId:number,roomId:number) {
     }
   });
 }
+
+export async function createBody (roomId:number){
+  return {
+    "roomId":roomId,
+  }
+}
