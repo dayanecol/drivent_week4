@@ -2,7 +2,6 @@ import { AuthenticatedRequest } from "@/middlewares";
 import { Response } from "express";
 import httpStatus from "http-status";
 import bookingService from "@/services/booking-service";
-import { number } from "joi";
 
 export async function getBooking(req: AuthenticatedRequest, res: Response) {
     const { userId }= req;
